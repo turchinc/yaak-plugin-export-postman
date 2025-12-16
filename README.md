@@ -1,33 +1,58 @@
 # Yaak Postman Export Plugin
 
-This plugin demonstrates exporting Yaak requests/collections to Postman Collection v2.1 JSON.
+This plugin exports Yaak requests and collections to Postman Collection v2.1 JSON format.
 
-Features
-- Adds an "Export to Postman" action to request context menu (writes `postman-<id>.json` to cwd).
- - Adds an "Export to Postman" action to request context menu (writes `postman-<id>.json` to cwd).
- - Adds an example "Export Collection to Postman" collection-level action (writes a minimal collection JSON; full collection export requires a listing API).
-- Provides a converter function `yaakToPostman` and a small CLI to convert Yaak JSON files.
+## Features
 
-Usage
+- **Request Export**: Right-click any request and export it as a standalone Postman collection JSON
+- **Collection/Folder Export**: Right-click a workspace or folder and export the entire collection with:
+  - Nested folder hierarchy preserved
+  - All requests with headers, body, and descriptions
+  - Authentication (basic, bearer, API key) with variable conversion
+  - Template variable syntax converted from Yaak format (`${[varName]}`) to Postman format (`{{varName}}`)
+  - Proper Postman v2.1.0 collection format
+
+## Usage
 
 From Yaak UI (when plugin is installed):
-- Right click a request and choose "Export to Postman" — the plugin writes `postman-<id>.json` to the current working directory and shows a toast.
 
-CLI (development):
+1. **Export a Request**
+   - Right-click a request and choose "Export to Postman"
+   - File is written to current working directory as `postman-<id>.json`
 
-Install dev deps and run:
+2. **Export a Workspace or Folder**
+   - Right-click a workspace or folder and choose "Export Collection to Postman"
+   - Prompted to specify output file path
+   - Exports full collection with all descendants (folders and requests)
+
+## CLI (Development)
+
+Install dev dependencies and run the converter:
 
 ```bash
 npm install
 npx ts-node src/cli.ts path/to/yaak-export.json out.postman.json
 ```
 
-Tests
+## Tests
 
 ```bash
-npx vitest run
+npm test
 ```
 
-Notes
-- The converter accepts a simple Yaak collection shape: { name, variables, requests: [{id,name,method,url,headers,body,description}] }
-- You can expand mapping (query params, auth, formdata, multi-request collections, folders) to better match Postman's schema.
+## How It Works
+
+The plugin uses the Yaak plugin context APIs to:
+
+- List all requests and folders in a workspace
+- Automatically detect folder hierarchy
+- Detect authentication type from available fields (username → basic, token → bearer, key/value → apikey)
+- Convert Yaak template variables to Postman format throughout URLs, bodies, headers, and auth values
+- Generate valid Postman v2.1.0 JSON
+
+## Notes
+
+- Auth is automatically detected: if username+password present → basic auth, if token present → bearer auth, if key+value → API key auth
+- Variables in all contexts (URLs, bodies, headers, auth) are converted from `${[name]}` to `{{name}}`
+- Folder hierarchy is preserved using nested `item` arrays in the Postman format
+- Request/folder-level auth overrides collection-level auth (standard Postman behavior)

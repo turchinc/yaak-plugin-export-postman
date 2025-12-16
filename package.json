@@ -1,0 +1,23 @@
+{
+  "name": "postman-collection-export",
+  "private": true,
+  "version": "0.0.1",
+  "scripts": {
+    "build": "yaakcli build",
+    "dev": "yaakcli dev",
+    "test": "vitest"
+  },
+  "devDependencies": {
+    "@types/node": "^24.10.1",
+    "@yaakapp/cli": "^0.3.4",
+    "chokidar": "^5.0.0",
+    "chokidar-cli": "^3.0.0",
+    "ts-node": "^10.9.1",
+    "typescript": "^5.9.3",
+    "vitest": "^4.0.14"
+  },
+  "dependencies": {
+    "@tauri-apps/plugin-fs": "^2.4.4",
+    "@yaakapp/api": "^0.7.0"
+  }
+}
