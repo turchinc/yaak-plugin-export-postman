@@ -77,7 +77,7 @@ function convertRequest(request: any): any {
 
   // Convert Yaak variable syntax ${[varName]} to Postman syntax {{varName}}
   const convertYaakVariables = (str: string): string => {
-    return str.replace(/\$\{\[([^\]]+)\]\}/g, '{{$1}}');
+    return str.replace(/\$\{\[([^\]]+)\]\}/g, (_, varName) => `{{${varName.trim()}}}`);
   };
 
   // Parse URL into Postman format with host/path arrays
@@ -177,7 +177,7 @@ function convertAuth(auth: Record<string, any>): any {
   
   // Convert Yaak variable syntax ${[varName]} to Postman syntax {{varName}}
   const convertYaakVariables = (str: string): string => {
-    return str.replace(/\$\{\[([^\]]+)\]\}/g, '{{$1}}');
+    return str.replace(/\$\{\[([^\]]+)\]\}/g, (_, varName) => `{{${varName.trim()}}}`);
   };
   
   // Detect auth type from fields if not explicitly set
