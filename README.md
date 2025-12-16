@@ -4,7 +4,6 @@ This plugin exports Yaak requests and collections to Postman Collection v2.1 JSO
 
 ## Features
 
-- **Request Export**: Right-click any request and export it as a standalone Postman collection JSON
 - **Collection/Folder Export**: Right-click a workspace or folder and export the entire collection with:
   - Nested folder hierarchy preserved
   - All requests with headers, body, and descriptions
@@ -16,14 +15,10 @@ This plugin exports Yaak requests and collections to Postman Collection v2.1 JSO
 
 From Yaak UI (when plugin is installed):
 
-1. **Export a Request**
-   - Right-click a request and choose "Export to Postman"
-   - File is written to current working directory as `postman-<id>.json`
+Right-click a workspace or folder and choose "Export Collection to Postman", then:
 
-2. **Export a Workspace or Folder**
-   - Right-click a workspace or folder and choose "Export Collection to Postman"
-   - Prompted to specify output file path
-   - Exports full collection with all descendants (folders and requests)
+- Specify the output file path where the Postman collection JSON should be saved
+- The collection is exported with all descendants (folders and requests)
 
 ## CLI (Development)
 

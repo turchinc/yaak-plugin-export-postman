@@ -2,76 +2,16 @@ import {PluginDefinition} from "@yaakapp/api";
 import { yaakToPostman } from './postman';
 
 export const plugin: any = {
-    httpRequestActions: [
-        {
-            label: "Hello, From Plugin",
-            icon: "info",
-            async onSelect(ctx: any, args: any) {
-                await ctx.toast.show({
-                    color: "success",
-                    message: `You clicked the request ${args.httpRequest.id}`
-                });
-            },
-        },
-        {
-            label: "Export to Postman",
-            icon: "info",
-            /**
-             * This action converts the selected Yaak request into a Postman collection file
-             * and writes it to the current working directory as `postman-<id>.json`.
-             * In a more complete implementation you might prompt for a filename or
-             * expose a CLI command instead.
-             */
-            async onSelect(ctx: any, args: any) {
-                try {
-                    const r = args.httpRequest;
-                    const yaak = {
-                        name: `Export - ${r.name || r.id}`,
-                        requests: [
-                            {
-                                id: r.id,
-                                name: r.name,
-                                method: r.method,
-                                url: r.url,
-                                headers: r.headers,
-                                body: r.body,
-                                description: r.description,
-                            },
-                        ],
-                    } as any;
-
-                    const postman = yaakToPostman(yaak);
-                    const json = JSON.stringify(postman, null, 2);
-                    const filename = `postman-${r.id}.json`;
-                    
-                    // Write to current directory
-                    await ctx.file.writeText(filename, json);
-                    await ctx.toast.show({ color: 'success', message: `Wrote ${filename}` });
-                } catch (err) {
-                    await ctx.toast.show({ color: 'danger', message: `Export failed: ${String(err)}` });
-                }
-            },
-        },
-    ],
-
     httpCollectionActions: [
         {
             label: "Export Collection to Postman",
             icon: "info",
             /**
-             * Export the selected folder/workspace as a Postman collection. This example
-             * writes a minimal collection JSON with no requests (listing requests is
-             * a follow-up feature), so it primarily demonstrates collection-level UI and
-             * wiring rather than a full export.
+             * Export the selected folder/workspace as a Postman collection.
              */
-            async onSelect(ctx, args) {
+            async onSelect(ctx: any, args: any) {
                 try {
                     const a: any = args;
-
-                    const coll = {
-                        name: `Export - ${a.folder?.name ?? a.workspace?.name ?? a.folder?.id ?? a.workspace?.id}`,
-                        requests: [],
-                    } as any;
 
                     // Ask the user for an output path
                     const last = (await ctx.store.get('postman_last_export_path')) || '';
@@ -107,13 +47,7 @@ export const plugin: any = {
 
                     const requests = await ctx.httpRequest.list(listArgs);
                     let allFolders = workspaceId ? await ctx.folder.list({ workspaceId }) : [];
-                    
-                    console.log('DEBUG: requests count', requests?.length);
-                    console.log('DEBUG: folders count', allFolders?.length);
-                    console.log('DEBUG: selectedFolderId', selectedFolderId);
-                    console.log('DEBUG: all folders with parentId:', allFolders.map((f: any) => ({ id: f.id, name: f.name, parentId: f.parentId, folderId: f.folderId })));
-                    console.log('DEBUG: all requests with folderId:', requests.map((r: any) => ({ id: r.id, name: r.name, folderId: r.folderId })).slice(0, 3));
-                    
+
                     // When exporting a specific folder, filter to only include its descendants (not itself)
                     if (selectedFolderId) {
                         const getDescendants = (folderId: string): string[] => {
@@ -136,17 +70,12 @@ export const plugin: any = {
                         const filteredRequests = requests.filter((r: any) => 
                             r.folderId && exportScope.has(r.folderId)
                         );
-                        console.log('DEBUG: filtered requests from', requests.length, 'to', filteredRequests.length);
                         requests.splice(0, requests.length, ...filteredRequests);
                     } else {
                         // When exporting root workspace, only include root-level requests (no folder)
                         const rootRequests = requests.filter((r: any) => !r.folderId || r.folderId === null);
-                        console.log('DEBUG: filtered root requests from', requests.length, 'to', rootRequests.length);
                         requests.splice(0, requests.length, ...rootRequests);
                     }
-                    
-                    console.log('DEBUG: first request', requests?.[0]);
-                    console.log('DEBUG: first folder', allFolders?.[0]);
                     
                     // Build hierarchy: organize folders and requests into nested structure
                     const buildHierarchy = (parentId: string | null): any[] => {
@@ -213,17 +142,6 @@ export const plugin: any = {
                         }
                     });
                     
-                    // Create a Postman environment with all found variables
-                    const postmanEnv: any = {
-                        name: `${a.folder?.name ?? a.workspace?.name} - Environment`,
-                        values: Array.from(allUsedVariables).map(varName => ({
-                            key: varName,
-                            value: '',
-                            type: 'string',
-                            enabled: true,
-                        })),
-                    };
-
                     // Build a yaak object with proper hierarchy
                     const yaak = {
                         name: `Export - ${a.folder?.name ?? a.workspace?.name ?? a.folder?.id ?? a.workspace?.id}`,
@@ -238,18 +156,7 @@ export const plugin: any = {
                     // Write collection to file
                     await ctx.file.writeText(filePath, json);
                     
-                    // Environment export disabled for now - broken
-                    // if (allUsedVariables.size > 0) {
-                    //     const envPath = filePath.replace(/\.json$/, '-environment.json');
-                    //     const envJson = JSON.stringify({
-                    //         name: postmanEnv.name,
-                    //         values: postmanEnv.values,
-                    //     }, null, 2);
-                    //     await ctx.file.writeText(envPath, envJson);
-                    //     await ctx.toast.show({ color: 'success', message: `Exported collection and environment to ${filePath}` });
-                    // } else {
-                        await ctx.toast.show({ color: 'success', message: `Exported to ${filePath}` });
-                    // }
+                    await ctx.toast.show({ color: 'success', message: `Exported to ${filePath}` });
                 } catch (err) {
                     await ctx.toast.show({ color: 'danger', message: `Export failed: ${String(err)}` });
                 }
